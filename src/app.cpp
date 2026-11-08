@@ -1107,7 +1107,7 @@ void App::restore_snapshot(const SnapshotData& snap) {
     }
     clamp_queue_selected();
 
-    if (snap.has_now_playing) {
+    if (snap.has_now_playing && settings_.auto_play_on_launch) {
         resume_start_sec_ = std::max(0.0, snap.position_sec);
         if (snap.now_playing.is_local) {
             fs::path p(snap.now_playing.path);
@@ -1297,7 +1297,7 @@ int App::settings_max_row() const {
     // track the actual font_map/about_app_lines content).
     switch (settings_tab_) {
         case 0: return 13; // COLOR_SCHEMA: 14 rows
-        case 1: return 6;  // ONOFF_SCHEMA: 7 rows
+        case 1: return 7;  // ONOFF_SCHEMA: 8 rows
         case 2: return 7;  // ANIM_SCHEMA: 8 rows
         case 3: {
             int letters = 0;
@@ -1332,6 +1332,7 @@ std::string App::settings_get_value(int row, int col) const {
             case 4: v = settings_.element_lyrics; break;
             case 5: v = settings_.element_lyrics_placeholder_ball; break;
             case 6: v = settings_.element_visualizer; break;
+            case 7: v = settings_.auto_play_on_launch; break;
         }
         return v ? "true" : "false";
     }
@@ -1403,6 +1404,7 @@ void App::settings_commit_edit() {
             case 4: settings_.element_lyrics = is_true; break;
             case 5: settings_.element_lyrics_placeholder_ball = is_true; break;
             case 6: settings_.element_visualizer = is_true; break;
+            case 7: settings_.auto_play_on_launch = is_true; break;
         }
     } else if (settings_tab_ == 2) {
         std::string v = to_lower(buf);
@@ -2738,11 +2740,11 @@ void App::build_settings_screen(std::ostringstream& frame, int W, int player_h) 
             y++;
         }
     } else if (settings_tab_ == 1 || settings_tab_ == 2) {
-        static const char* onoff_l[7] = {"Eliment Disk", "Dummy Buttons", "Queue Display", "WaveForm",
-                                          "Lyrics Engine", "Lyric Ball", "Visualizer"};
+        static const char* onoff_l[8] = {"Eliment Disk", "Dummy Buttons", "Queue Display", "WaveForm",
+                                          "Lyrics Engine", "Lyric Ball", "Visualizer", "PlayOnLaunch"};
         static const char* anim_l[8] = {"Vis. Fluidity", "Waveform Style", "Disk Speed", "Playback Mode",
                                          "Vis. Degradation", "Vis. Viscosity", "Lyrics Alignment", "Lyrics Animation"};
-        int count = (settings_tab_ == 1) ? 7 : 8;
+        int count = (settings_tab_ == 1) ? sizeof(onoff_l) / sizeof(char*) : sizeof(anim_l) / sizeof(char*);
         const char* const* labels = (settings_tab_ == 1) ? onoff_l : anim_l;
         for (int i = 0; i < count; ++i) {
             pos(y, 1, B(y) + "\u2502" + R); pos(y, W, B(y) + "\u2502" + R);
@@ -3523,7 +3525,7 @@ int App::run() {
             log_event("restored previous session");
         }
     }
-    if (!restored && !local_view_.empty()) {
+    if (!restored && !local_view_.empty() && settings_.auto_play_on_launch) {
         selected_ = 0;
         start_local_track(local_view_[0]);
     }
