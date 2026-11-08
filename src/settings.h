@@ -27,6 +27,9 @@ struct Settings {
     int lyrics_animation = 0; // 0=full (default), 1=word by word, 2=letter by letter, 3=only active line, 4=only active word
     bool element_visualizer = true;
 
+    // --- user preference -----------------------------------------------
+    bool auto_play_on_launch = true;
+
     // --- appearance / tuning -------------------------------------------
     int visualizer_fluidity = 1;        // 1-10, higher = smoother/slower rise
     int visualizer_degradation_speed = 8; // 1 (slow fade) - 10 (near-instant), how fast bars fall after a drop
